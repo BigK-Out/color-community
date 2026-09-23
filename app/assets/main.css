@@ -76,6 +76,17 @@ input {
   color: #fff;
 }
 
+/* A metal peg seen end-on. Chips and hanging cards sit on these. */
+.peg {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 12%, #c9c9c6 30%, #7b7b78 75%, #555 100%);
+  box-shadow: 2px 3px 3px rgb(40 22 5 / 0.5);
+  z-index: 2;
+}
+
 /* ─── Layout ─────────────────────────────────────────────────── */
 
 .container {

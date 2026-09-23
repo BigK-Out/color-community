@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { harmonize, hexToHsl, hueDistance } from '../app/utils/color'
+import { harmonize, hexToHsl, hueDistance, paletteFromText } from '../app/utils/color'
 import { colorName, hexToOklab } from '../app/utils/colorNames'
 import { createHistory, HISTORY_LIMIT, pushHistory, redo, undo } from '../app/utils/history'
 
@@ -116,5 +116,15 @@ describe('history', () => {
     let h = createHistory(0)
     for (let i = 1; i <= HISTORY_LIMIT + 20; i++) h = pushHistory(h, i)
     expect(h.past).toHaveLength(HISTORY_LIMIT)
+  })
+})
+
+describe('paletteFromText', () => {
+  it('is stable for the same text and differs between texts', () => {
+    const a = paletteFromText('mira')
+    expect(a).toEqual(paletteFromText('mira'))
+    expect(a).not.toEqual(paletteFromText('otto'))
+    expect(a).toHaveLength(5)
+    a.forEach(c => expect(c).toMatch(HEX))
   })
 })

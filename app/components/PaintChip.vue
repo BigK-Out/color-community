@@ -6,7 +6,7 @@ import { NuxtLink } from '#components'
 const props = defineProps<{
   palette: Palette
   tilt?: number // override the hang angle (the hero fans its chips)
-  sample?: boolean // a made-up palette: no link, no maker, no likes
+  sample?: boolean // a made-up palette: no links and no likes
 }>()
 
 const tilt = computed(() => props.tilt ?? tiltFor(props.palette.id))
@@ -15,7 +15,7 @@ const number = computed(() => chipNumber(props.palette.id))
 
 <template>
   <article class="chip" :style="{ '--tilt': `${tilt}deg` }">
-    <span class="chip__peg" aria-hidden="true" />
+    <span class="chip__peg peg" aria-hidden="true" />
     <div class="chip__card">
       <!-- <component :is> renders a link normally, a plain div for samples -->
       <component :is="sample ? 'div' : NuxtLink" :to="sample ? undefined : `/p/${palette.id}`" class="chip__link">
@@ -38,6 +38,9 @@ const number = computed(() => chipNumber(props.palette.id))
         </NuxtLink>
         <LikeButton :palette-id="palette.id" :count="palette.like_count" class="chip__like" />
       </footer>
+      <footer v-else-if="palette.author" class="chip__foot">
+        <span class="chip__author">@{{ palette.author.username }}</span>
+      </footer>
     </div>
   </article>
 </template>
@@ -48,18 +51,11 @@ const number = computed(() => chipNumber(props.palette.id))
   position: relative;
 }
 
-/* The metal peg, seen end-on, sitting in the chip's punched hole. */
+/* The peg sits in the chip's punched hole. */
 .chip__peg {
-  position: absolute;
   top: calc(var(--hole-y) - 7px);
   left: 50%;
-  width: 14px;
-  height: 14px;
   margin-left: -7px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff 0 12%, #c9c9c6 30%, #7b7b78 75%, #555 100%);
-  box-shadow: 2px 3px 3px rgb(40 22 5 / 0.5);
-  z-index: 2;
 }
 
 .chip__card {
@@ -91,6 +87,7 @@ const number = computed(() => chipNumber(props.palette.id))
 }
 
 .chip__colors li {
+  transition: background-color 0.35s ease, color 0.35s ease;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
