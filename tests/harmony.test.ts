@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { harmonize, hexToHsl, hueDistance, paletteFromText } from '../app/utils/color'
-import { colorName, hexToOklab } from '../app/utils/colorNames'
+import { colorName, colorOfTheDay, hexToOklab, nearestColors } from '../app/utils/colorNames'
 import { createHistory, HISTORY_LIMIT, pushHistory, redo, undo } from '../app/utils/history'
 
 const HEX = /^#[0-9a-f]{6}$/
@@ -78,6 +78,21 @@ describe('colorName', () => {
 
   it('ignores hex case', () => {
     expect(colorName('#E56E24')).toBe(colorName('#e56e24'))
+  })
+
+  it('nearestColors puts an exact match first, then gets further away', () => {
+    const m = nearestColors('#e56e24', 4)
+    expect(m).toHaveLength(4)
+    expect(m[0]).toMatchObject({ name: '24 Carrot', hex: '#e56e24' })
+    expect(m[0]!.distance).toBeCloseTo(0, 6)
+    for (let i = 1; i < m.length; i++) expect(m[i]!.distance).toBeGreaterThanOrEqual(m[i - 1]!.distance)
+  })
+
+  it('colorOfTheDay is fixed for a date and changes between dates', () => {
+    expect(colorOfTheDay('2026-09-23')).toEqual(colorOfTheDay('2026-09-23'))
+    const week = new Set(['20', '21', '22', '23', '24', '25', '26'].map(d => colorOfTheDay(`2026-09-${d}`).hex))
+    expect(week.size).toBeGreaterThan(5)
+    expect(colorOfTheDay('2026-09-23').hex).toMatch(HEX)
   })
 
   it('OKLab puts white at L=1 and black at L=0', () => {

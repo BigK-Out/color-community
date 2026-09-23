@@ -3,7 +3,8 @@ import type { Palette } from '~/types'
 
 const api = usePalettes()
 
-const { data: popular, error, refresh } = await useAsyncData('popular-home', () => api.feed('popular', 0, 8))
+const { data: popular, error, refresh } = await useAsyncData('popular-home', () => api.feed('popular', 0, 4))
+const { data: fresh, error: freshError, refresh: refreshFresh } = await useAsyncData('fresh-home', () => api.feed('new', 0, 4))
 
 // Three chips hang in the hero. Before anyone has published, show samples.
 const SAMPLES: Palette[] = [
@@ -54,6 +55,8 @@ const steps = [
       </div>
     </section>
 
+    <ColorOfTheDay />
+
     <section class="container how">
       <div class="how__card card-stock">
         <h2 class="how__title">How it works</h2>
@@ -67,10 +70,14 @@ const steps = [
       </div>
     </section>
 
-    <section class="container popular">
-      <div class="popular__head">
-        <h2 class="popular__title">Popular on the rack</h2>
-        <NuxtLink to="/explore?sort=popular" class="popular__all">See the whole rack</NuxtLink>
+    <section class="container matcher-wrap">
+      <ColorMatcher />
+    </section>
+
+    <section class="container shelf">
+      <div class="shelf__head">
+        <h2 class="shelf__title">Most hearted</h2>
+        <NuxtLink to="/explore?sort=popular" class="shelf__all">See all</NuxtLink>
       </div>
       <QueryError v-if="error" message="The rack didn't load." @retry="refresh()" />
       <div v-else-if="popular?.length" class="rack">
@@ -79,6 +86,17 @@ const steps = [
       <p v-else class="empty">
         Nothing on the rack yet. <NuxtLink to="/generate">Mix the first palette.</NuxtLink>
       </p>
+    </section>
+
+    <section v-if="fresh?.length || freshError" class="container shelf">
+      <div class="shelf__head">
+        <h2 class="shelf__title">Fresh off the counter</h2>
+        <NuxtLink to="/explore" class="shelf__all">See all</NuxtLink>
+      </div>
+      <QueryError v-if="freshError" message="The newest palettes didn't load." @retry="refreshFresh()" />
+      <div v-else class="rack">
+        <PaintChip v-for="p in fresh" :key="p.id" :palette="p" />
+      </div>
     </section>
   </div>
 </template>
@@ -111,7 +129,9 @@ const steps = [
   height: 440px;
 }
 
-.hero__chip {
+/* Two classes deep so this beats PaintChip's own `position: relative`,
+   whichever stylesheet happens to load last. */
+.hero__chips > .hero__chip {
   position: absolute;
   top: 0;
   width: 215px;
@@ -140,7 +160,11 @@ const steps = [
 }
 
 .how {
-  padding-top: 2rem;
+  padding-top: 5rem;
+}
+
+.matcher-wrap {
+  padding-top: 5rem;
 }
 
 .how__card {
@@ -182,12 +206,15 @@ const steps = [
   max-width: 34ch;
 }
 
-.popular {
+.shelf {
   padding-top: 5rem;
+}
+
+.shelf:last-child {
   padding-bottom: 6rem;
 }
 
-.popular__head {
+.shelf__head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -196,14 +223,14 @@ const steps = [
   margin-bottom: 1.5rem;
 }
 
-.popular__title {
+.shelf__title {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 900;
   font-stretch: 112%;
   letter-spacing: -0.01em;
 }
 
-.popular__all {
+.shelf__all {
   font-weight: 700;
   text-underline-offset: 4px;
 }
@@ -226,7 +253,7 @@ const steps = [
 }
 
 @media (max-width: 520px) {
-  .hero__chip {
+  .hero__chips > .hero__chip {
     width: 190px;
   }
 

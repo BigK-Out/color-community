@@ -16,4 +16,5 @@ if (import.meta.client) {
     <!-- <NuxtPage /> renders whichever file in app/pages/ matches the URL -->
     <NuxtPage />
   </main>
+  <SiteFooter />
 </template>

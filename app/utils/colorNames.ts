@@ -23,20 +23,29 @@ export function hexToOklab(hex: string): Lab {
 }
 
 // Converted once, on first use.
-let table: { name: string, lab: Lab }[] | null = null
+type Entry = { name: string, hex: string, lab: Lab }
+let table: Entry[] | null = null
 const cache = new Map<string, string>()
+
+function getTable(): Entry[] {
+  table ??= colornames.map(c => ({ name: c.name, hex: c.hex.toLowerCase(), lab: hexToOklab(c.hex) }))
+  return table
+}
+
+function distance(a: Lab, b: Lab): number {
+  return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
+}
 
 export function colorName(hex: string): string {
   const key = hex.toLowerCase()
   const hit = cache.get(key)
   if (hit) return hit
 
-  table ??= colornames.map(c => ({ name: c.name, lab: hexToOklab(c.hex) }))
-  const [L, A, B] = hexToOklab(key)
-  let best = table[0]!
+  const lab = hexToOklab(key)
+  let best = getTable()[0]!
   let bestDist = Infinity
-  for (const entry of table) {
-    const d = (entry.lab[0] - L) ** 2 + (entry.lab[1] - A) ** 2 + (entry.lab[2] - B) ** 2
+  for (const entry of getTable()) {
+    const d = distance(entry.lab, lab)
     if (d < bestDist) {
       bestDist = d
       best = entry
@@ -44,4 +53,28 @@ export function colorName(hex: string): string {
   }
   cache.set(key, best.name)
   return best.name
+}
+
+export interface ColorMatch {
+  name: string
+  hex: string
+  /** OKLab distance: 0 is identical, ~0.02 is hard to tell apart. */
+  distance: number
+}
+
+/** The `count` named colours closest to `hex`, closest first. */
+export function nearestColors(hex: string, count = 4): ColorMatch[] {
+  const lab = hexToOklab(hex.toLowerCase())
+  return getTable()
+    .map(e => ({ name: e.name, hex: e.hex, distance: distance(e.lab, lab) }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, count)
+}
+
+/** One named colour per calendar day (key like "2026-09-23"), the same for everyone. */
+export function colorOfTheDay(dateKey: string): { name: string, hex: string } {
+  let hash = 2166136261 // FNV-1a
+  for (const ch of dateKey) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619)
+  const entry = colornames[(hash >>> 0) % colornames.length]!
+  return { name: entry.name, hex: entry.hex.toLowerCase() }
 }

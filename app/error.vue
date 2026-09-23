@@ -29,6 +29,7 @@ useHead({ title: notFound.value ? 'Not found · COLOR' : 'Error · COLOR' })
       <button class="btn btn--big missing__btn" @click="clearError({ redirect: '/explore' })">Go to the rack</button>
     </div>
   </main>
+  <SiteFooter />
 </template>
 
 <style scoped>
