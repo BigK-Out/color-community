@@ -1,7 +1,7 @@
 # COLOR — palette community (design)
 
 Date: 2026-09-23
-Status: awaiting review
+Status: implemented
 
 ## Why
 
@@ -34,6 +34,8 @@ everything runs locally with `npm run dev` against a free Supabase project.
 - Supabase: Postgres, Auth and Row Level Security. There is no custom server code: the browser
   talks to Supabase directly, and RLS is the security boundary.
 - Vitest for the unit tests on the pure colour logic
+- Embedding the author must name the key (`profiles!palettes_author_id_fkey`): palettes also
+  reach profiles through `likes`, and PostgREST rejects an ambiguous embed
 - Plain scoped CSS (no Tailwind) and the Kumbh Sans font, which keeps the look of the first site:
   `#131313` background, gradient text and gradient buttons
 
@@ -69,9 +71,12 @@ app/
     guest.ts          send logged-in users away from /login and /signup
   utils/
     color.ts          pure colour functions (unit tested)
-  types.ts            Palette, Profile row types
+  types/
+    index.ts          Palette, Profile row types
+    database.types.ts Database type for the typed Supabase client
 supabase/
-  schema.sql        tables, constraints, triggers, RLS — pasted into Supabase SQL editor
+  migrations/20260923000000_init.sql   tables, constraints, triggers, grants, RLS
+  config.toml       local Supabase CLI config
 tests/
   color.test.ts
 ```
@@ -95,7 +100,7 @@ place and each page only handles display.
   back to the same palette afterwards.
 - Publish asks for a name (1–40 characters), inserts the palette and goes to `/p/[id]`.
 
-## Data model (`supabase/schema.sql`)
+## Data model (`supabase/migrations/20260923000000_init.sql`)
 
 ```
 profiles  id uuid PK → auth.users(id) on delete cascade
@@ -132,8 +137,9 @@ Triggers:
 | palettes | everyone | `author_id = auth.uid()` | none | `author_id = auth.uid()` |
 | likes | everyone | `user_id = auth.uid()` | none | `user_id = auth.uid()` |
 
-With no update policy on palettes, nobody can edit a palette or fake its `like_count` from the
-browser. The only way the count changes is the likes trigger. The anon key in `.env` is public by
+With no update policy on palettes, nobody can edit a palette from the browser. INSERT is granted
+per column (`author_id, name, colors` on palettes), so nobody can send their own `like_count`
+either. The only way the count changes is the likes trigger. The anon key in `.env` is public by
 design, and RLS is what protects the data.
 
 ## Error handling
@@ -171,6 +177,6 @@ design, and RLS is what protects the data.
 ## Setup the user must do
 
 1. Create a free Supabase project.
-2. Paste `supabase/schema.sql` into its SQL editor and run it.
+2. Run `supabase/migrations/20260923000000_init.sql` in its SQL editor (or `npx supabase start` for a local Docker stack).
 3. Copy the project URL and anon key into `.env` as `SUPABASE_URL` and `SUPABASE_KEY`.
 4. For local development, turn off "Confirm email" (Auth → Providers → Email).

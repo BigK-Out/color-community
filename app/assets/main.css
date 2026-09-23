@@ -1,0 +1,195 @@
+/* The look of the first site: near-black background, gradient text, gradient buttons. */
+
+:root {
+  --bg: #131313;
+  --bg-raised: #1c1c1c;
+  --bg-hero: linear-gradient(to right, #161616, #000000);
+  --text: #ffffff;
+  --muted: #9a9a9a;
+  --accent: #8400ff;
+  --danger: #ff5a6e;
+
+  --grad-logo: linear-gradient(to top, #ff0844 0%, #ffb199 100%);
+  --grad-warm: linear-gradient(to right, #ff6a00, #ee0979);
+  --grad-rainbow: linear-gradient(to right, #f64f59, #c471ed, #12c2e9);
+  --grad-button: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
+  --grad-fresh: linear-gradient(to top, #5cf3eb 0%, #17ff36 100%);
+
+  --radius: 6px;
+  --nav-height: 80px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Kumbh Sans", system-ui, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Helpers ────────────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.gradient-text {
+  background-image: var(--grad-rainbow);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text--logo { background-image: var(--grad-logo); }
+.gradient-text--warm { background-image: var(--grad-warm); }
+.gradient-text--fresh { background-image: var(--grad-fresh); }
+
+.page-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 3rem 0 1.5rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* The gradient button from the first site, with its pink fill on hover. */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--grad-button);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: #ff1ead;
+  transition: width 0.35s;
+  z-index: -1;
+}
+
+.btn:hover::after {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:disabled::after {
+  width: 0;
+}
+
+.btn--big {
+  font-size: 1.4rem;
+  padding: 18px 48px;
+}
+
+.btn--ghost {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px #fff3;
+}
+
+.btn--ghost::after {
+  background: #ffffff14;
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--danger);
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+
+.btn--danger::after {
+  background: #ff5a6e22;
+}
+
+/* ─── Forms ──────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field label {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.input {
+  background: var(--bg-raised);
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.95rem;
+}
+
+/* ─── Palette grid (feed, profile, landing) ──────────────────── */
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.empty {
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--muted);
+}
