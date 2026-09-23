@@ -38,10 +38,10 @@ const { data: palettes, error, refresh } = await useAsyncData(
 
     <template v-else-if="profile">
       <header class="profile-head">
-        <div>
+        <HangingCard tag="div" class="page-sign">
           <h1 class="page-title">@{{ profile.username }}</h1>
           <p class="lede">Mixing since {{ since }}.</p>
-        </div>
+        </HangingCard>
         <nav class="shelf-tags" aria-label="Show">
           <NuxtLink :to="{ query: {} }" class="shelf-tag" :class="{ active: tab === 'palettes' }">Mixed</NuxtLink>
           <NuxtLink :to="{ query: { tab: 'liked' } }" class="shelf-tag" :class="{ active: tab === 'liked' }">Hearted</NuxtLink>
@@ -68,6 +68,7 @@ const { data: palettes, error, refresh } = await useAsyncData(
 
 <style scoped>
 .profile-head {
+  margin-top: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -77,7 +78,6 @@ const { data: palettes, error, refresh } = await useAsyncData(
 }
 
 .profile-head .page-title {
-  margin-bottom: 0.5rem;
   overflow-wrap: anywhere;
 }
 

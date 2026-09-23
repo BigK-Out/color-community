@@ -59,10 +59,10 @@ async function loadMore() {
 <template>
   <div class="container">
     <header class="rack-head">
-      <div>
+      <HangingCard tag="div" class="page-sign">
         <h1 class="page-title">The rack</h1>
         <p class="lede">Every palette people have published. Heart the ones you'd paint a wall with.</p>
-      </div>
+      </HangingCard>
       <nav class="shelf-tags" aria-label="Order">
         <NuxtLink :to="{ query: {} }" class="shelf-tag" :class="{ active: sort === 'new' }">Newest</NuxtLink>
         <NuxtLink :to="{ query: { sort: 'popular' } }" class="shelf-tag" :class="{ active: sort === 'popular' }">Most hearted</NuxtLink>
@@ -78,7 +78,7 @@ async function loadMore() {
         <PaintChip v-for="p in palettes" :key="p.id" :palette="p" />
       </div>
       <div class="rack-more">
-        <p v-if="moreError" class="form-error">More palettes didn't load.</p>
+        <p v-if="moreError" class="form-error board-note">More palettes didn't load.</p>
         <button v-if="hasMore" class="btn btn--plain" :disabled="loadingMore" @click="loadMore">
           {{ loadingMore ? 'Loading…' : moreError ? 'Try again' : 'Load more' }}
         </button>
@@ -89,16 +89,13 @@ async function loadMore() {
 
 <style scoped>
 .rack-head {
+  margin-top: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 1.5rem;
   margin-bottom: 2.5rem;
-}
-
-.rack-head .page-title {
-  margin-bottom: 0.75rem;
 }
 
 .rack-more {

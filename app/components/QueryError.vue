@@ -13,11 +13,15 @@ defineEmits<{ retry: [] }>()
 <style scoped>
 .query-error {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin: 1rem 0 4rem;
+  padding: 16px 22px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow), inset 4px 0 0 var(--danger);
   color: var(--danger);
-  text-align: center;
+  font-weight: 600;
 }
 </style>

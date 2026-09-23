@@ -34,14 +34,14 @@ const steps = [
 <template>
   <div>
     <section class="hero container">
-      <div class="hero__copy">
+      <HangingCard class="hero__sign" size="lg">
         <h1 class="hero__title display">Choose your colors.</h1>
         <p class="lede">A paint counter for palettes. Mix five colors, hang them on the rack, and see what everyone else picked.</p>
         <div class="hero__ctas">
           <NuxtLink to="/generate" class="btn btn--big">Mix a palette</NuxtLink>
           <NuxtLink to="/explore" class="btn btn--big btn--plain">Browse the rack</NuxtLink>
         </div>
-      </div>
+      </HangingCard>
 
       <div class="hero__chips" :class="{ 'is-sample': isSample }">
         <PaintChip
@@ -75,7 +75,7 @@ const steps = [
     </section>
 
     <section class="container shelf">
-      <div class="shelf__head">
+      <div class="shelf__head board-label">
         <h2 class="shelf__title">Most hearted</h2>
         <NuxtLink to="/explore?sort=popular" class="shelf__all">See all</NuxtLink>
       </div>
@@ -89,7 +89,7 @@ const steps = [
     </section>
 
     <section v-if="fresh?.length || freshError" class="container shelf">
-      <div class="shelf__head">
+      <div class="shelf__head board-label">
         <h2 class="shelf__title">Fresh off the counter</h2>
         <NuxtLink to="/explore" class="shelf__all">See all</NuxtLink>
       </div>
@@ -112,8 +112,9 @@ const steps = [
 }
 
 .hero__title {
-  font-size: clamp(3.6rem, 9.5vw, 8.5rem);
-  margin-bottom: 1.75rem;
+  font-size: clamp(3rem, 7.2vw, 6.6rem);
+  color: var(--brand);
+  margin-bottom: 1.5rem;
 }
 
 .hero__ctas {
@@ -215,16 +216,11 @@ const steps = [
 }
 
 .shelf__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .shelf__title {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
   font-weight: 900;
   font-stretch: 112%;
   letter-spacing: -0.01em;

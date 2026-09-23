@@ -15,7 +15,6 @@
   --card: #fdfdfb;
   --ink: #000000;
   --ink-soft: #4b4540;
-  --on-board-soft: #2b1d0e; /* secondary text directly on the board */
 
   --brand: #2340a8; /* ultramarine: the shop's colour */
   --brand-deep: #152a78;
@@ -54,6 +53,17 @@ body {
   background-size: 38px 38px, 38px 38px, 240px 240px;
   background-position: 19px 19px, 19px 19px, 0 0;
   font-variant-numeric: tabular-nums;
+}
+
+/* Page content stretches so the footer sits at the bottom of short pages. */
+#__nuxt {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#__nuxt > main {
+  flex: 1;
 }
 
 a {
@@ -123,9 +133,44 @@ input {
 
 .lede {
   font-size: 1.2rem;
-  font-weight: 500;
-  max-width: 38ch;
-  color: var(--on-board-soft);
+  max-width: 40ch;
+  color: var(--ink-soft);
+}
+
+/*
+  Rule of the house: no text sits straight on the pegboard — the holes
+  chop it up. Words go on white card stock: a HangingCard for page
+  headers, or one of these label strips for smaller bits.
+*/
+.page-sign {
+  max-width: 620px;
+}
+
+.page-sign .page-title {
+  margin: 0;
+}
+
+.page-sign .lede {
+  margin-top: 0.6rem;
+}
+
+.board-note {
+  padding: 10px 16px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
+}
+
+.board-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
+  padding: 14px 22px;
 }
 
 /* ─── Buttons ────────────────────────────────────────────────── */
@@ -228,9 +273,14 @@ input {
 }
 
 .empty {
-  padding: 3rem 0 5rem;
-  font-size: 1.15rem;
-  color: var(--on-board-soft);
+  display: inline-block;
+  margin: 1rem 0 5rem;
+  padding: 16px 22px;
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
 }
 
 .empty a {

@@ -19,7 +19,7 @@ useHead({ title: notFound.value ? 'Not found · COLOR' : 'Error · COLOR' })
       <span class="missing__blank" />
       <p>No. {{ error.statusCode }}</p>
     </div>
-    <div>
+    <HangingCard class="page-sign">
       <h1 class="page-title">{{ notFound ? (error.statusMessage || 'Nothing here') : 'Something broke' }}</h1>
       <p class="lede">
         {{ notFound
@@ -27,7 +27,7 @@ useHead({ title: notFound.value ? 'Not found · COLOR' : 'Error · COLOR' })
           : 'The page hit an error. Reload to try again.' }}
       </p>
       <button class="btn btn--big missing__btn" @click="clearError({ redirect: '/explore' })">Go to the rack</button>
-    </div>
+    </HangingCard>
   </main>
   <SiteFooter />
 </template>

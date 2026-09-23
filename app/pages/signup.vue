@@ -219,9 +219,11 @@ async function submit() {
 
 .auth-page__preview p {
   margin-top: 2rem;
-  font-weight: 500;
-  color: var(--on-board-soft);
-  max-width: 26ch;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
 }
 
 .inbox-btn {
