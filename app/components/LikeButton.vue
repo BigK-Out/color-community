@@ -62,7 +62,7 @@ async function toggle() {
   gap: 0.35rem;
   background: none;
   border: none;
-  color: var(--muted);
+  color: var(--ink-soft);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: var(--radius);
@@ -70,12 +70,12 @@ async function toggle() {
 }
 
 .like:hover {
-  color: #fff;
+  color: var(--ink);
 }
 
 .like svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -87,7 +87,7 @@ async function toggle() {
 }
 
 .like.is-liked {
-  color: #ff1ead;
+  color: var(--danger);
 }
 
 .like.is-liked svg {

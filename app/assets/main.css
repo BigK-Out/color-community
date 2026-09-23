@@ -1,22 +1,34 @@
-/* The look of the first site: near-black background, gradient text, gradient buttons. */
+/*
+  COLOR — a paint counter.
+  The page is a pegboard; palettes are paint chips hung on it.
+  Everything that isn't a chip stays quiet: white card stock, black ink,
+  and the shop's ultramarine for anything you can press.
+*/
 
 :root {
-  --bg: #131313;
-  --bg-raised: #1c1c1c;
-  --bg-hero: linear-gradient(to right, #161616, #000000);
-  --text: #ffffff;
-  --muted: #9a9a9a;
-  --accent: #8400ff;
-  --danger: #ff5a6e;
+  /* hardboard and its holes */
+  --board: #c7a177;
+  --board-dark: #8d6a45;
+  --hole: rgb(62 40 18 / 0.55);
+  --hole-lip: rgb(236 208 168 / 0.55);
 
-  --grad-logo: linear-gradient(to top, #ff0844 0%, #ffb199 100%);
-  --grad-warm: linear-gradient(to right, #ff6a00, #ee0979);
-  --grad-rainbow: linear-gradient(to right, #f64f59, #c471ed, #12c2e9);
-  --grad-button: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
-  --grad-fresh: linear-gradient(to top, #5cf3eb 0%, #17ff36 100%);
+  --card: #fdfdfb;
+  --ink: #000000;
+  --ink-soft: #4b4540;
+  --on-board-soft: #2b1d0e; /* secondary text directly on the board */
 
-  --radius: 6px;
-  --nav-height: 80px;
+  --brand: #2340a8; /* ultramarine: the shop's colour */
+  --brand-deep: #152a78;
+  --danger: #b3122a;
+
+  --rule: rgb(0 0 0 / 0.14);
+  /* a card hanging on a board throws its shadow down and to the right */
+  --hang-shadow: 5px 9px 14px -6px rgb(58 34 10 / 0.55);
+
+  --nav-height: 72px;
+  --radius: 3px;
+
+  --font: "Archivo", system-ui, sans-serif;
 }
 
 *,
@@ -27,16 +39,21 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Kumbh Sans", system-ui, sans-serif;
+  font-family: var(--font);
+  font-size: 1.0625rem;
   line-height: 1.5;
+  color: var(--ink);
   min-height: 100vh;
+  background-color: var(--board);
+  /* peg holes: a dark hole with a light lip below it, every 38px */
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--hole) 0 2.1px, transparent 2.7px),
+    radial-gradient(circle at 50% 56%, var(--hole-lip) 0 2.6px, transparent 3.2px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 38px 38px, 38px 38px, 240px 240px;
+  background-position: 19px 19px, 19px 19px, 0 0;
+  font-variant-numeric: tabular-nums;
 }
 
 a {
@@ -46,106 +63,112 @@ a {
 button,
 input {
   font: inherit;
+  color: inherit;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--brand);
   outline-offset: 2px;
 }
 
-/* ─── Helpers ────────────────────────────────────────────────── */
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* ─── Layout ─────────────────────────────────────────────────── */
 
 .container {
   width: 100%;
-  max-width: 1300px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
-.gradient-text {
-  background-image: var(--grad-rainbow);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* White card stock — forms, info panels, instructions. */
+.card-stock {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
 }
 
-.gradient-text--logo { background-image: var(--grad-logo); }
-.gradient-text--warm { background-image: var(--grad-warm); }
-.gradient-text--fresh { background-image: var(--grad-fresh); }
+/* ─── Type ───────────────────────────────────────────────────── */
+
+.display {
+  font-weight: 900;
+  font-stretch: 112%;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+}
 
 .page-title {
-  font-size: clamp(2rem, 5vw, 3rem);
-  margin: 3rem 0 1.5rem;
+  font-weight: 900;
+  font-stretch: 112%;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 3.5rem 0 2rem;
 }
 
-.muted {
-  color: var(--muted);
+.lede {
+  font-size: 1.2rem;
+  font-weight: 500;
+  max-width: 38ch;
+  color: var(--on-board-soft);
 }
 
-/* The gradient button from the first site, with its pink fill on hover. */
+/* ─── Buttons ────────────────────────────────────────────────── */
+
+/* A key that presses down: flat ultramarine with a deeper edge underneath. */
 .btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 12px 28px;
+  min-height: 46px;
+  padding: 0 22px;
   border: none;
   border-radius: var(--radius);
-  background: var(--grad-button);
+  background: var(--brand);
   color: #fff;
   font-weight: 700;
+  font-stretch: 100%;
   text-decoration: none;
   cursor: pointer;
-  overflow: hidden;
-  isolation: isolate;
+  box-shadow: inset 0 -4px 0 var(--brand-deep);
+  transition: transform 80ms ease, box-shadow 80ms ease;
 }
 
-.btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 0;
-  background: #ff1ead;
-  transition: width 0.35s;
-  z-index: -1;
-}
-
-.btn:hover::after {
-  width: 100%;
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 -2px 0 var(--brand-deep);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.btn:disabled::after {
-  width: 0;
-}
-
 .btn--big {
-  font-size: 1.4rem;
-  padding: 18px 48px;
+  min-height: 56px;
+  padding: 0 30px;
+  font-size: 1.15rem;
 }
 
-.btn--ghost {
-  background: transparent;
-  box-shadow: inset 0 0 0 2px #fff3;
+.btn--plain {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink), inset 0 -4px 0 var(--ink);
 }
 
-.btn--ghost::after {
-  background: #ffffff14;
+.btn--plain:active:not(:disabled) {
+  box-shadow: inset 0 0 0 1.5px var(--ink), inset 0 -2px 0 var(--ink);
 }
 
 .btn--danger {
-  background: transparent;
+  background: var(--card);
   color: var(--danger);
-  box-shadow: inset 0 0 0 2px var(--danger);
-}
-
-.btn--danger::after {
-  background: #ff5a6e22;
+  box-shadow: inset 0 0 0 1.5px var(--danger), inset 0 -4px 0 var(--danger);
 }
 
 /* ─── Forms ──────────────────────────────────────────────────── */
@@ -153,43 +176,63 @@ input {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .field label {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .input {
-  background: var(--bg-raised);
-  border: 1px solid #333;
+  background: #fff;
+  border: 1.5px solid var(--ink);
   border-radius: var(--radius);
-  color: var(--text);
-  padding: 12px 14px;
+  padding: 11px 13px;
   width: 100%;
+  min-height: 46px;
+}
+
+.input::placeholder {
+  color: #8a837c;
 }
 
 .input:focus {
-  border-color: var(--accent);
-  outline: none;
+  outline: 3px solid var(--brand);
+  outline-offset: 0;
 }
 
 .form-error {
   color: var(--danger);
-  font-size: 0.95rem;
+  font-weight: 600;
 }
 
-/* ─── Palette grid (feed, profile, landing) ──────────────────── */
+/* ─── The rack (grid of chips) ───────────────────────────────── */
 
-.palette-grid {
+.rack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 56px 36px;
+  padding-top: 18px; /* room for the pegs */
 }
 
 .empty {
-  padding: 4rem 0;
-  text-align: center;
-  color: var(--muted);
+  padding: 3rem 0 5rem;
+  font-size: 1.15rem;
+  color: var(--on-board-soft);
+}
+
+.empty a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

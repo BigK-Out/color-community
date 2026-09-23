@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The navbar from the first site, as a Vue component.
-// Files in app/components/ are auto-imported: <NavBar /> just works.
+// The shop sign across the top. Files in app/components/ are auto-imported:
+// <NavBar /> works anywhere without an import.
 
 const user = useSupabaseUser()
 const client = useSupabaseClient()
@@ -22,165 +22,168 @@ async function logOut() {
 </script>
 
 <template>
-  <nav class="navbar">
-    <div class="navbar__container container">
-      <NuxtLink to="/" class="navbar__logo gradient-text gradient-text--logo">COLOR</NuxtLink>
+  <header class="sign">
+    <nav class="sign__inner container" aria-label="Main">
+      <NuxtLink to="/" class="sign__mark">COLOR</NuxtLink>
 
       <button
-        class="navbar__toggle"
-        :class="{ 'is-active': menuOpen }"
+        class="sign__toggle"
+        :class="{ 'is-open': menuOpen }"
         :aria-expanded="menuOpen"
+        aria-controls="main-menu"
         aria-label="Menu"
         @click="menuOpen = !menuOpen"
       >
-        <span class="bar" /><span class="bar" /><span class="bar" />
+        <span /><span /><span />
       </button>
 
-      <ul class="navbar__menu" :class="{ active: menuOpen }">
-        <li><NuxtLink to="/explore" class="navbar__link">Explore</NuxtLink></li>
-        <li><NuxtLink to="/generate" class="navbar__link">Generate</NuxtLink></li>
+      <ul id="main-menu" class="sign__menu" :class="{ 'is-open': menuOpen }">
+        <li><NuxtLink to="/explore" class="sign__link">The rack</NuxtLink></li>
+        <li><NuxtLink to="/generate" class="sign__link">Mix a palette</NuxtLink></li>
 
         <!-- v-if / v-else: render one block or the other -->
         <template v-if="user">
-          <li>
-            <NuxtLink v-if="username" :to="`/u/${username}`" class="navbar__link">@{{ username }}</NuxtLink>
+          <li v-if="username">
+            <NuxtLink :to="`/u/${username}`" class="sign__link">@{{ username }}</NuxtLink>
           </li>
-          <li class="navbar__btn">
-            <button class="btn btn--ghost" @click="logOut">Log out</button>
-          </li>
+          <li><button class="sign__link sign__logout" @click="logOut">Log out</button></li>
         </template>
         <template v-else>
-          <li><NuxtLink to="/login" class="navbar__link">Log in</NuxtLink></li>
-          <li class="navbar__btn">
-            <NuxtLink to="/signup" class="btn">Sign up</NuxtLink>
-          </li>
+          <li><NuxtLink to="/login" class="sign__link">Log in</NuxtLink></li>
+          <li><NuxtLink to="/signup" class="sign__cta">Sign up</NuxtLink></li>
         </template>
       </ul>
-    </div>
-  </nav>
+    </nav>
+  </header>
 </template>
 
 <!-- "scoped" styles only apply to this component's own HTML -->
 <style scoped>
-.navbar {
-  background: var(--bg);
-  height: var(--nav-height);
+.sign {
   position: sticky;
   top: 0;
   z-index: 100;
-  font-size: 1.1rem;
+  height: var(--nav-height);
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--brand-deep), 0 10px 18px -8px rgb(40 20 0 / 0.5);
 }
 
-.navbar__container {
+.sign__inner {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   height: 100%;
 }
 
-.navbar__logo {
+.sign__mark {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0.02em;
   text-decoration: none;
 }
 
-.navbar__menu {
+.sign__menu {
   display: flex;
   align-items: center;
+  gap: 0.25rem;
   list-style: none;
-  height: 100%;
 }
 
-.navbar__menu > li {
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.navbar__link {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  padding: 0 1.25rem;
+.sign__link {
+  display: inline-block;
+  padding: 8px 14px;
+  font-weight: 600;
   text-decoration: none;
-  border-bottom: 4px solid transparent;
-  transition: color 0.3s ease;
-}
-
-.navbar__link:hover {
-  color: #9518fc;
-}
-
-/* NuxtLink adds this class to the link for the current page */
-.navbar__link.router-link-active {
-  border-bottom-color: var(--accent);
-}
-
-.navbar__btn {
-  padding-left: 1rem;
-}
-
-.navbar__toggle {
-  display: none;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 3px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
 }
 
-.bar {
+.sign__link:hover,
+.sign__link.router-link-active {
+  text-decoration-line: underline;
+}
+
+.sign__logout {
+  opacity: 0.8;
+}
+
+.sign__cta {
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  background: #fff;
+  color: var(--brand);
+  font-weight: 800;
+  border-radius: var(--radius);
+  text-decoration: none;
+  box-shadow: inset 0 -3px 0 #c9d2f2;
+}
+
+.sign__toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sign__toggle span {
   display: block;
-  width: 25px;
+  width: 24px;
   height: 3px;
   margin: 5px auto;
   background: #fff;
-  transition: all 0.3s ease-in-out;
+  transition: transform 0.25s ease, opacity 0.2s ease;
 }
 
-@media (max-width: 960px) {
-  .navbar__toggle {
+@media (max-width: 860px) {
+  .sign__toggle {
     display: block;
   }
 
-  .navbar__toggle.is-active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-  .navbar__toggle.is-active .bar:nth-child(2) { opacity: 0; }
-  .navbar__toggle.is-active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+  .sign__toggle.is-open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+  .sign__toggle.is-open span:nth-child(2) { opacity: 0; }
+  .sign__toggle.is-open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-  .navbar__menu {
+  .sign__menu {
     position: absolute;
-    top: var(--nav-height);
+    top: calc(var(--nav-height) + 4px);
     left: 0;
     right: 0;
-    height: auto;
     flex-direction: column;
-    background: var(--bg);
-    padding: 1rem 0 2rem;
-    font-size: 1.4rem;
-    transform: translateY(-120%);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.4s ease, opacity 0.3s ease;
-    z-index: -1;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem 24px 1.5rem;
+    background: var(--brand);
+    box-shadow: 0 4px 0 var(--brand-deep);
+    font-size: 1.3rem;
+    display: none;
   }
 
-  .navbar__menu.active {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
+  .sign__menu.is-open {
+    display: flex;
   }
 
-  .navbar__menu > li {
+  .sign__link {
+    display: block;
     width: 100%;
+    text-align: left;
+    padding: 14px 0;
+  }
+
+  .sign__cta {
+    margin: 0.75rem 0 0;
     justify-content: center;
-    height: auto;
-  }
-
-  .navbar__link {
-    padding: 1.25rem;
-  }
-
-  .navbar__btn {
-    padding: 1rem 0 0;
+    width: 100%;
+    min-height: 52px;
   }
 }
 </style>

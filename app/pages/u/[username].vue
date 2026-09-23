@@ -11,13 +11,16 @@ const { data: profile, error: profileError, refresh: refreshProfile } = await us
 )
 
 if (!profileError.value && !profile.value) {
-  throw createError({ statusCode: 404, statusMessage: 'User not found', fatal: true })
+  throw createError({ statusCode: 404, statusMessage: 'Nobody goes by that name', fatal: true })
 }
 
 useHead({ title: `@${username} · COLOR` })
 
 const tab = computed(() => (route.query.tab === 'liked' ? 'liked' : 'palettes'))
 const isMe = computed(() => !!user.value && user.value.sub === profile.value?.id)
+const since = computed(() =>
+  profile.value ? new Date(profile.value.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '',
+)
 
 const { data: palettes, error, refresh } = await useAsyncData(
   `profile-${username}-list`,
@@ -31,29 +34,32 @@ const { data: palettes, error, refresh } = await useAsyncData(
 
 <template>
   <div class="container">
-    <QueryError v-if="profileError" @retry="refreshProfile()" />
+    <QueryError v-if="profileError" message="This profile didn't load." @retry="refreshProfile()" />
 
     <template v-else-if="profile">
-      <header class="profile__head">
-        <h1 class="page-title gradient-text gradient-text--warm">@{{ profile.username }}</h1>
-        <nav class="tabs" aria-label="Show">
-          <NuxtLink :to="{ query: {} }" class="tab" :class="{ active: tab === 'palettes' }">Palettes</NuxtLink>
-          <NuxtLink :to="{ query: { tab: 'liked' } }" class="tab" :class="{ active: tab === 'liked' }">Liked</NuxtLink>
+      <header class="profile-head">
+        <div>
+          <h1 class="page-title">@{{ profile.username }}</h1>
+          <p class="lede">Mixing since {{ since }}.</p>
+        </div>
+        <nav class="shelf-tags" aria-label="Show">
+          <NuxtLink :to="{ query: {} }" class="shelf-tag" :class="{ active: tab === 'palettes' }">Mixed</NuxtLink>
+          <NuxtLink :to="{ query: { tab: 'liked' } }" class="shelf-tag" :class="{ active: tab === 'liked' }">Hearted</NuxtLink>
         </nav>
       </header>
 
-      <QueryError v-if="error" @retry="refresh()" />
-      <div v-else-if="palettes?.length" class="palette-grid profile__grid">
-        <PaletteCard v-for="p in palettes" :key="p.id" :palette="p" />
+      <QueryError v-if="error" message="These palettes didn't load." @retry="refresh()" />
+      <div v-else-if="palettes?.length" class="rack profile-rack">
+        <PaintChip v-for="p in palettes" :key="p.id" :palette="p" />
       </div>
       <p v-else class="empty">
         <template v-if="tab === 'liked'">
-          {{ isMe ? "You haven't" : `@${profile.username} hasn't` }} liked anything yet.
-          <NuxtLink v-if="isMe" to="/explore">Go explore.</NuxtLink>
+          <template v-if="isMe">You haven’t hearted anything yet. <NuxtLink to="/explore">Browse the rack.</NuxtLink></template>
+          <template v-else>@{{ profile.username }} hasn’t hearted anything yet.</template>
         </template>
         <template v-else>
-          {{ isMe ? "You haven't" : `@${profile.username} hasn't` }} published a palette yet.
-          <NuxtLink v-if="isMe" to="/generate">Make one.</NuxtLink>
+          <template v-if="isMe">You haven’t published a palette yet. <NuxtLink to="/generate">Mix one.</NuxtLink></template>
+          <template v-else>@{{ profile.username }} hasn’t published a palette yet.</template>
         </template>
       </p>
     </template>
@@ -61,15 +67,21 @@ const { data: palettes, error, refresh } = await useAsyncData(
 </template>
 
 <style scoped>
-.profile__head {
+.profile-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
-.profile__grid {
-  padding-bottom: 5rem;
+.profile-head .page-title {
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-rack {
+  padding-bottom: 6rem;
 }
 </style>

@@ -4,7 +4,7 @@ import type { Palette } from '~/types'
 const route = useRoute()
 const api = usePalettes()
 
-useHead({ title: 'Explore · COLOR' })
+useHead({ title: 'The rack · COLOR' })
 
 const sort = computed<FeedSort>(() => (route.query.sort === 'popular' ? 'popular' : 'new'))
 
@@ -58,25 +58,28 @@ async function loadMore() {
 
 <template>
   <div class="container">
-    <header class="explore__head">
-      <h1 class="page-title gradient-text">Explore</h1>
-      <nav class="tabs" aria-label="Sort">
-        <NuxtLink :to="{ query: {} }" class="tab" :class="{ active: sort === 'new' }">New</NuxtLink>
-        <NuxtLink :to="{ query: { sort: 'popular' } }" class="tab" :class="{ active: sort === 'popular' }">Popular</NuxtLink>
+    <header class="rack-head">
+      <div>
+        <h1 class="page-title">The rack</h1>
+        <p class="lede">Every palette people have published. Heart the ones you'd paint a wall with.</p>
+      </div>
+      <nav class="shelf-tags" aria-label="Order">
+        <NuxtLink :to="{ query: {} }" class="shelf-tag" :class="{ active: sort === 'new' }">Newest</NuxtLink>
+        <NuxtLink :to="{ query: { sort: 'popular' } }" class="shelf-tag" :class="{ active: sort === 'popular' }">Most hearted</NuxtLink>
       </nav>
     </header>
 
-    <QueryError v-if="error" @retry="refresh()" />
+    <QueryError v-if="error" message="The rack didn't load." @retry="refresh()" />
     <p v-else-if="palettes.length === 0" class="empty">
-      No palettes yet. <NuxtLink to="/generate">Be the first.</NuxtLink>
+      Nothing on the rack yet. <NuxtLink to="/generate">Mix the first palette.</NuxtLink>
     </p>
     <template v-else>
-      <div class="palette-grid">
-        <PaletteCard v-for="p in palettes" :key="p.id" :palette="p" />
+      <div class="rack">
+        <PaintChip v-for="p in palettes" :key="p.id" :palette="p" />
       </div>
-      <div class="explore__more">
-        <p v-if="moreError" class="form-error">Couldn't load more.</p>
-        <button v-if="hasMore" class="btn btn--ghost" :disabled="loadingMore" @click="loadMore">
+      <div class="rack-more">
+        <p v-if="moreError" class="form-error">More palettes didn't load.</p>
+        <button v-if="hasMore" class="btn btn--plain" :disabled="loadingMore" @click="loadMore">
           {{ loadingMore ? 'Loading…' : moreError ? 'Try again' : 'Load more' }}
         </button>
       </div>
@@ -85,43 +88,55 @@ async function loadMore() {
 </template>
 
 <style scoped>
-.explore__head {
+.rack-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
-.explore__more {
+.rack-head .page-title {
+  margin-bottom: 0.75rem;
+}
+
+.rack-more {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 3rem 0 5rem;
+  padding: 4rem 0 6rem;
 }
 </style>
 
 <style>
-/* Unscoped: the profile page uses the same tabs. */
-.tabs {
+/* Unscoped: the profile page uses the same tags.
+   Shelf-edge price labels — the one you're on is printed in shop blue. */
+.shelf-tags {
   display: flex;
-  gap: 0.25rem;
-  background: var(--bg-raised);
-  border-radius: 999px;
-  padding: 4px;
+  gap: 0.5rem;
 }
 
-.tab {
-  padding: 8px 20px;
-  border-radius: 999px;
-  text-decoration: none;
-  color: var(--muted);
+.shelf-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--hang-shadow);
   font-weight: 700;
+  font-stretch: 90%;
+  text-decoration: none;
 }
 
-.tab.active {
-  background: var(--grad-button);
+.shelf-tag:hover {
+  box-shadow: var(--hang-shadow), inset 0 -3px 0 var(--brand);
+}
+
+.shelf-tag.active {
+  background: var(--brand);
   color: #fff;
 }
 </style>

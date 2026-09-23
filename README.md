@@ -1,7 +1,12 @@
 # COLOR
 
-A palette community, grown out of `projects/first-website`. Generate colour palettes,
-publish them, and like other people's. Built with Nuxt 4 (Vue) and Supabase.
+A palette community, grown out of `projects/first-website`, dressed as a paint counter: the page is
+a pegboard and palettes hang on it as paint chips. Mix palettes (random or by harmony — analogous,
+complementary, triad, mono — with undo), every colour gets a real name, publish to the rack, and
+heart other people's. Built with Nuxt 4 (Vue) and Supabase.
+
+Colour names come from [color-name-list](https://github.com/meodai/color-name-list) (MIT), "best of"
+set, matched by nearest colour in OKLab.
 
 Design: [docs/superpowers/specs/2026-09-23-color-community-design.md](docs/superpowers/specs/2026-09-23-color-community-design.md)
 
@@ -29,7 +34,7 @@ tables, triggers, grants and Row Level Security.
 | | |
 |---|---|
 | `npm run dev` | dev server with hot reload |
-| `npm test` | unit tests for the colour logic |
+| `npm test` | unit tests: colour, harmony, names, undo |
 | `npm run typecheck` | Vue + TypeScript check |
 | `npm run build` | production build |
 
@@ -38,10 +43,10 @@ tables, triggers, grants and Row Level Security.
 ```
 app/
   pages/          one file per route (/generate, /explore, /p/[id], /u/[username], …)
-  components/     NavBar, Swatch, PaletteCard, LikeButton, …
+  components/     NavBar, Swatch, PaintChip, LikeButton, …
   composables/    usePalettes (every Supabase query), useMyLikes, useAuthRedirect
   middleware/     guest — keeps logged-in users off /login and /signup
-  utils/color.ts  random colours, hex parsing, contrast
+  utils/          color.ts (random, harmony, hex, contrast), colorNames.ts, history.ts (undo)
   types/          row types + the Database type for the Supabase client
 supabase/         migration + local CLI config
 tests/            vitest

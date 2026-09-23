@@ -24,9 +24,9 @@ async function submit() {
 
 <template>
   <div class="container auth">
-    <h1 class="page-title gradient-text gradient-text--logo">Log in</h1>
+    <h1 class="page-title">Log in</h1>
     <!-- v-model links an input to a ref both ways: typing updates email, and vice versa -->
-    <form class="auth__form" @submit.prevent="submit">
+    <form class="auth__form card-stock" @submit.prevent="submit">
       <div class="field">
         <label for="email">Email</label>
         <input id="email" v-model="email" class="input" type="email" autocomplete="email" required>
@@ -38,8 +38,8 @@ async function submit() {
       <p v-if="error" class="form-error">{{ error }}</p>
       <button class="btn" :disabled="busy">{{ busy ? 'Logging in…' : 'Log in' }}</button>
     </form>
-    <p class="muted auth__switch">
-      No account? <NuxtLink :to="{ path: '/signup', query: route.query }">Sign up</NuxtLink>
+    <p class="auth__switch">
+      No account yet? <NuxtLink :to="{ path: '/signup', query: route.query }">Sign up</NuxtLink>
     </p>
   </div>
 </template>
@@ -55,9 +55,16 @@ async function submit() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  padding: 1.75rem;
 }
 
 .auth__switch {
   margin-top: 1.5rem;
+  color: var(--on-board-soft);
+}
+
+.auth__switch a {
+  color: var(--ink);
+  font-weight: 700;
 }
 </style>

@@ -20,19 +20,19 @@ async function submit() {
   const name = username.value.trim().toLowerCase()
   error.value = ''
   if (!USERNAME.test(name)) {
-    error.value = 'Username: 3–20 characters, letters, numbers and _ only.'
+    error.value = 'Usernames are 3–20 characters: lowercase letters, numbers and _.'
     return
   }
 
   busy.value = true
   try {
     if (await api.usernameTaken(name)) {
-      error.value = 'That username is taken.'
+      error.value = 'That username is taken. Try another.'
       return
     }
 
     // The username rides along as metadata; a database trigger turns it
-    // into a row in the profiles table (see supabase/schema.sql).
+    // into a row in the profiles table (see supabase/migrations/).
     const { data, error: e } = await client.auth.signUp({
       email: email.value,
       password: password.value,
@@ -42,7 +42,7 @@ async function submit() {
     if (e) {
       // The trigger failing (someone grabbed the name a moment ago) surfaces as this.
       error.value = e.message.includes('Database error saving new user')
-        ? 'That username was just taken — pick another.'
+        ? 'Someone took that username a moment ago. Try another.'
         : e.message
       return
     }
@@ -62,15 +62,15 @@ async function submit() {
 
 <template>
   <div class="container auth">
-    <h1 class="page-title gradient-text gradient-text--logo">Sign up</h1>
+    <h1 class="page-title">Sign up</h1>
 
-    <p v-if="checkInbox" class="auth__inbox">
+    <p v-if="checkInbox" class="auth__inbox card-stock">
       Almost there — we sent a link to <strong>{{ email }}</strong>. Click it, then
       <NuxtLink :to="{ path: '/login', query: route.query }">log in</NuxtLink>.
     </p>
 
     <template v-else>
-      <form class="auth__form" @submit.prevent="submit">
+      <form class="auth__form card-stock" @submit.prevent="submit">
         <div class="field">
           <label for="username">Username</label>
           <input
@@ -103,7 +103,7 @@ async function submit() {
         <p v-if="error" class="form-error">{{ error }}</p>
         <button class="btn" :disabled="busy">{{ busy ? 'Creating account…' : 'Sign up' }}</button>
       </form>
-      <p class="muted auth__switch">
+      <p class="auth__switch">
         Have an account? <NuxtLink :to="{ path: '/login', query: route.query }">Log in</NuxtLink>
       </p>
     </template>
@@ -113,5 +113,6 @@ async function submit() {
 <style scoped>
 .auth__inbox {
   font-size: 1.15rem;
+  padding: 1.75rem;
 }
 </style>

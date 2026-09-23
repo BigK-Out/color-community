@@ -36,8 +36,7 @@ everything runs locally with `npm run dev` against a free Supabase project.
 - Vitest for the unit tests on the pure colour logic
 - Embedding the author must name the key (`profiles!palettes_author_id_fkey`): palettes also
   reach profiles through `likes`, and PostgREST rejects an ambiguous embed
-- Plain scoped CSS (no Tailwind) and the Kumbh Sans font, which keeps the look of the first site:
-  `#131313` background, gradient text and gradient buttons
+- Plain scoped CSS (no Tailwind). The visual design is described under "Look (v2)" below.
 
 ## Pages
 
@@ -180,3 +179,27 @@ design, and RLS is what protects the data.
 2. Run `supabase/migrations/20260923000000_init.sql` in its SQL editor (or `npx supabase start` for a local Docker stack).
 3. Copy the project URL and anon key into `.env` as `SUPABASE_URL` and `SUPABASE_KEY`.
 4. For local development, turn off "Confirm email" (Auth → Providers → Email).
+
+## Look (v2) and generator extras
+
+Added 2026-09-23 because the first version looked templated.
+
+- **The idea:** a hardware-store paint counter. The page background is pegboard, and palettes
+  hang on pegs as paint chips (`PaintChip.vue`). A chip has a punched hole, five named colour
+  bands, a stock number taken from its id ("No. 0214"), and a slight tilt, also from its id. It
+  straightens when you hover.
+- **Colours:** hardboard `#c7a177`, card stock `#fdfdfb`, ink `#000`, ultramarine `#2340a8` for
+  everything you can press, and red `#b3122a` for errors.
+- **Type:** only Archivo, using its width axis: wide and black for signage and titles, condensed
+  for chip labels.
+- **Motion:** the hero chips swing onto their pegs once when the page loads. Everything else moves
+  only when you act on it. Reduced motion is respected.
+- **Colour names:** `utils/colorNames.ts` picks the nearest name from the color-name-list "best of"
+  set (4,961 names), measured in OKLab. Names are worked out from the hex, not stored.
+- **Harmony modes:** Random, Analogous, Complementary, Triad and Mono (`harmonize()` in
+  `utils/color.ts`). The first pinned colour sets the base hue.
+- **Undo/redo:** `utils/history.ts`, keeping 50 steps. `Ctrl/⌘+Z` undoes, and `Shift` or
+  `Ctrl+Y` redoes. It is kept in `useState` so it survives leaving the page.
+- **Open at the counter:** the palette page has an "Open at the counter" link that loads the
+  palette into the generator (`/generate?c=…`).
+

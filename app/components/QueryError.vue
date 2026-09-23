@@ -6,7 +6,7 @@ defineEmits<{ retry: [] }>()
 <template>
   <div class="query-error" role="alert">
     <p>{{ message ?? 'Something went wrong loading this.' }}</p>
-    <button class="btn btn--ghost" @click="$emit('retry')">Retry</button>
+    <button class="btn btn--plain" @click="$emit('retry')">Retry</button>
   </div>
 </template>
 

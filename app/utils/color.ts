@@ -45,6 +45,61 @@ export function generate(current: string[], locked: boolean[], rand: () => numbe
   return current.map((c, i) => (locked[i] ? c : randomColor(rand)))
 }
 
+// ─── Harmony ───────────────────────────────────────────────────────────────
+
+export type HarmonyMode = 'random' | 'analogous' | 'complementary' | 'triadic' | 'mono'
+
+export const HARMONY_MODES: { mode: HarmonyMode, label: string }[] = [
+  { mode: 'random', label: 'Random' },
+  { mode: 'analogous', label: 'Analogous' },
+  { mode: 'complementary', label: 'Complementary' },
+  { mode: 'triadic', label: 'Triad' },
+  { mode: 'mono', label: 'Mono' },
+]
+
+// Hue offsets (degrees from the base hue) for each of the five slots.
+const HUE_OFFSETS: Record<Exclude<HarmonyMode, 'random'>, number[]> = {
+  analogous: [-40, -20, 0, 20, 40],
+  complementary: [0, 0, 180, 180, 0],
+  triadic: [0, 120, 240, 0, 120],
+  mono: [0, 0, 0, 0, 0],
+}
+
+// Mono spreads lightness so the five shades don't blur together.
+const MONO_LIGHTNESS = [24, 38, 52, 66, 80]
+
+/**
+ * Reroll unlocked colours so they work together. The first locked colour
+ * sets the base hue; with nothing locked, the base hue is random.
+ */
+export function harmonize(
+  current: string[],
+  locked: boolean[],
+  mode: HarmonyMode,
+  rand: () => number = Math.random,
+): string[] {
+  if (mode === 'random') return generate(current, locked, rand)
+
+  const anchor = current.find((_, i) => locked[i])
+  const base = anchor ? hexToHsl(anchor)[0] : rand() * 360
+  const offsets = HUE_OFFSETS[mode]
+
+  return current.map((c, i) => {
+    if (locked[i]) return c
+    const jitter = (rand() - 0.5) * 8 // ±4° so repeats don't look mechanical
+    const h = (((base + offsets[i]! + jitter) % 360) + 360) % 360
+    const s = 45 + rand() * 40
+    const l = mode === 'mono' ? MONO_LIGHTNESS[i]! + (rand() - 0.5) * 6 : 35 + rand() * 40
+    return hslToHex(h, s, l)
+  })
+}
+
+/** Shortest distance between two hues on the colour wheel, 0–180. */
+export function hueDistance(a: number, b: number): number {
+  const d = Math.abs(a - b) % 360
+  return d > 180 ? 360 - d : d
+}
+
 /** "abc", "#ABC", "aabbcc" → "#aabbcc"; anything else → null. */
 export function normalizeHex(input: string): string | null {
   const s = input.trim().replace(/^#/, '').toLowerCase()

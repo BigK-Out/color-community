@@ -7,28 +7,45 @@ const user = useSupabaseUser()
 const api = usePalettes()
 const { toLogin } = useAuthRedirect()
 
-useHead({ title: 'Generate · COLOR' })
+useHead({ title: 'Mix a palette · COLOR' })
 
 // useState (not ref) so the server's random colours are sent to the browser
-// instead of the browser rolling different ones. It also keeps the palette
-// if you visit another page and come back.
-const colors = useState<string[]>('generator-colors', () =>
-  Array.from({ length: PALETTE_SIZE }, () => randomColor()),
+// instead of the browser rolling different ones. It also keeps your palette,
+// undo steps and pins if you visit another page and come back.
+const history = useState('generator-history', () =>
+  createHistory(Array.from({ length: PALETTE_SIZE }, () => randomColor())),
 )
 const locked = useState<boolean[]>('generator-locks', () => Array(PALETTE_SIZE).fill(false))
+const mode = useState<HarmonyMode>('generator-mode', () => 'random')
+
+// computed() derives a value that updates itself when its inputs change.
+const colors = computed(() => history.value.present)
+const canUndo = computed(() => history.value.past.length > 0)
+const canRedo = computed(() => history.value.future.length > 0)
 
 // A palette in the URL (?c=ff0844-…) wins — that's how shared links and
 // the "log in, then come back" trip keep your colours.
 const fromUrl = decodeColors(route.query.c)
-if (fromUrl) colors.value = fromUrl
+if (fromUrl && encodeColors(fromUrl) !== encodeColors(colors.value)) {
+  history.value = pushHistory(history.value, fromUrl)
+}
 
 function syncUrl() {
   const c = encodeColors(colors.value)
   if (route.query.c !== c) router.replace({ query: { ...route.query, c } })
 }
 
-function reroll() {
-  colors.value = generate(colors.value, locked.value)
+function setColors(next: string[]) {
+  history.value = pushHistory(history.value, next)
+}
+
+function mix() {
+  setColors(harmonize(colors.value, locked.value, mode.value))
+}
+
+function pickMode(m: HarmonyMode) {
+  mode.value = m
+  mix()
 }
 
 function toggleLock(i: number) {
@@ -36,15 +53,32 @@ function toggleLock(i: number) {
 }
 
 function setColor(i: number, hex: string) {
-  colors.value = colors.value.map((c, j) => (j === i ? hex : c))
+  setColors(colors.value.map((c, j) => (j === i ? hex : c)))
 }
 
-// Space bar rerolls — unless you're typing or on a button/link.
+const stepBack = () => (history.value = undo(history.value))
+const stepForward = () => (history.value = redo(history.value))
+
+// Space mixes; Ctrl/⌘+Z undoes, with Shift (or Ctrl+Y) redoes.
+// Text fields keep their own keys.
 function onKey(e: KeyboardEvent) {
-  if (e.code !== 'Space' || e.repeat) return
-  if ((e.target as HTMLElement).closest('input, textarea, select, button, a')) return
+  if ((e.target as HTMLElement).closest('input, textarea, select')) return
+  const mod = e.ctrlKey || e.metaKey
+  if (mod && e.key.toLowerCase() === 'z') {
+    e.preventDefault()
+    if (e.shiftKey) stepForward()
+    else stepBack()
+    return
+  }
+  if (mod && e.key.toLowerCase() === 'y') {
+    e.preventDefault()
+    stepForward()
+    return
+  }
+  if (e.code !== 'Space' || e.repeat || mod) return
+  if ((e.target as HTMLElement).closest('button, a')) return
   e.preventDefault()
-  reroll()
+  mix()
 }
 
 // onMounted runs in the browser only, after the page is on screen.
@@ -70,7 +104,7 @@ async function publish() {
     await navigateTo(`/p/${id}`)
   }
   catch (e) {
-    publishError.value = e instanceof Error ? e.message : 'Could not publish. Try again.'
+    publishError.value = e instanceof Error ? e.message : 'Publishing failed. Check your connection and try again.'
   }
   finally {
     publishing.value = false
@@ -79,8 +113,8 @@ async function publish() {
 </script>
 
 <template>
-  <div class="generator">
-    <div class="generator__swatches">
+  <div class="counter">
+    <div class="counter__swatches">
       <Swatch
         v-for="(c, i) in colors"
         :key="i"
@@ -93,106 +127,226 @@ async function publish() {
       />
     </div>
 
-    <div class="generator__bar container">
-      <p class="generator__hint muted">
-        Press <kbd>space</kbd> to generate · lock the colours you like
-      </p>
-      <button class="btn btn--ghost generator__reroll" @mousedown.prevent @click="reroll">Generate</button>
+    <div class="counter__bar">
+      <div class="counter__inner container">
+        <div class="counter__mix">
+          <div class="modes" role="group" aria-label="Harmony">
+            <button
+              v-for="m in HARMONY_MODES"
+              :key="m.mode"
+              class="modes__btn"
+              :aria-pressed="mode === m.mode"
+              @mousedown.prevent
+              @click="pickMode(m.mode)"
+            >
+              {{ m.label }}
+            </button>
+          </div>
 
-      <!-- @submit.prevent = handle the form ourselves instead of reloading the page -->
-      <form class="generator__publish" @submit.prevent="publish">
-        <template v-if="user">
-          <input
-            v-model="name"
-            class="input"
-            placeholder="Name this palette"
-            maxlength="40"
-            aria-label="Palette name"
-            required
-          >
-          <button class="btn" :disabled="publishing || !name.trim()">
-            {{ publishing ? 'Publishing…' : 'Publish' }}
-          </button>
-        </template>
-        <button v-else class="btn" type="submit">Log in to publish</button>
-      </form>
+          <div class="counter__actions">
+            <button class="btn" @mousedown.prevent @click="mix">
+              Mix <kbd>space</kbd>
+            </button>
+            <button class="icon-btn" :disabled="!canUndo" aria-label="Undo" title="Undo (Ctrl+Z)" @mousedown.prevent @click="stepBack">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></svg>
+            </button>
+            <button class="icon-btn" :disabled="!canRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" @mousedown.prevent @click="stepForward">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5" /><path d="M20 9H10a6 6 0 0 0 0 12h3" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- @submit.prevent = handle the form ourselves instead of reloading the page -->
+        <form class="counter__publish" @submit.prevent="publish">
+          <template v-if="user">
+            <input
+              v-model="name"
+              class="input"
+              placeholder="Name your palette"
+              maxlength="40"
+              aria-label="Palette name"
+              required
+            >
+            <button class="btn" :disabled="publishing || !name.trim()">
+              {{ publishing ? 'Publishing…' : 'Publish' }}
+            </button>
+          </template>
+          <button v-else class="btn btn--plain" type="submit">Log in to publish</button>
+        </form>
+      </div>
+      <p v-if="publishError" class="form-error container">{{ publishError }}</p>
     </div>
-    <p v-if="publishError" class="form-error container">{{ publishError }}</p>
   </div>
 </template>
 
 <style scoped>
-.generator {
+.counter {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--nav-height));
-  padding-bottom: 1rem;
+  height: calc(100vh - var(--nav-height) - 4px);
+  min-height: 560px;
 }
 
-.generator__swatches {
+.counter__swatches {
   flex: 1;
   display: flex;
-  min-height: 420px;
+  min-height: 0;
 }
 
-.generator__bar {
+.counter__bar {
+  background: var(--card);
+  border-top: 1.5px solid var(--ink);
+  padding: 14px 0;
+}
+
+.counter__inner {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 1rem 2rem;
   flex-wrap: wrap;
-  padding-top: 1rem;
 }
 
-.generator__hint {
-  flex: 1;
-  min-width: 200px;
+.counter__mix {
+  display: flex;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.counter__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 kbd {
-  border: 1px solid #555;
-  border-bottom-width: 3px;
-  border-radius: 4px;
-  padding: 0 6px;
   font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-stretch: 85%;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.2);
+}
+
+/* Harmony modes: a row of label tabs, the chosen one printed in shop blue. */
+.modes {
+  display: flex;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.modes__btn {
+  padding: 9px 14px;
+  border: none;
+  background: none;
+  font-weight: 600;
+  font-stretch: 88%;
+  cursor: pointer;
+}
+
+.modes__btn + .modes__btn {
+  border-left: 1.5px solid var(--ink);
+}
+
+.modes__btn:hover {
+  background: rgb(35 64 168 / 0.08);
+}
+
+.modes__btn[aria-pressed="true"] {
+  background: var(--brand);
   color: #fff;
 }
 
-.generator__reroll {
-  display: none;
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
 }
 
-.generator__publish {
+.icon-btn:hover:not(:disabled) {
+  background: rgb(0 0 0 / 0.06);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.counter__publish {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
-.generator__publish .input {
+.counter__publish .input {
   width: 240px;
 }
 
 @media (max-width: 700px) {
-  .generator__swatches {
+  .counter {
+    height: auto;
+  }
+
+  .counter__swatches {
     flex-direction: column;
-    min-height: 60vh;
   }
 
-  .generator__hint {
-    display: none;
+  .counter__swatches > * {
+    min-height: 78px;
   }
 
-  .generator__reroll {
-    display: inline-flex;
-  }
-
-  .generator__bar > * {
+  .counter__mix,
+  .counter__publish {
     width: 100%;
   }
 
-  .generator__publish {
+  /* five modes don't fit one row on a phone: wrap them as separate tabs */
+  .modes {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    border: none;
+  }
+
+  .modes__btn,
+  .modes__btn + .modes__btn {
+    border: 1.5px solid var(--ink);
+    border-radius: var(--radius);
+    padding: 9px 4px;
+  }
+
+  .counter__actions .btn {
+    flex: 1;
+  }
+
+  /* no space bar on a phone */
+  kbd {
+    display: none;
+  }
+
+  .counter__publish {
     flex-direction: column;
   }
 
-  .generator__publish .input {
+  .counter__publish .input {
     width: 100%;
   }
 }

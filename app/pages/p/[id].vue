@@ -11,21 +11,22 @@ const { data: palette, error, refresh } = await useAsyncData(`palette-${id}`, ()
 
 // Loaded fine but nothing there → Nuxt's error page (app/error.vue).
 if (!error.value && !palette.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Palette not found', fatal: true })
+  throw createError({ statusCode: 404, statusMessage: 'That palette isn’t on the rack', fatal: true })
 }
 
 useHead({ title: () => (palette.value ? `${palette.value.name} · COLOR` : 'COLOR') })
 
 const isAuthor = computed(() => !!user.value && user.value.sub === palette.value?.author_id)
+const number = computed(() => (palette.value ? chipNumber(palette.value.id) : ''))
 const created = computed(() =>
-  palette.value ? new Date(palette.value.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '',
+  palette.value ? new Date(palette.value.created_at).toLocaleDateString(undefined, { dateStyle: 'long' }) : '',
 )
 
 const deleting = ref(false)
 const deleteError = ref('')
 
 async function remove() {
-  if (!palette.value || !confirm(`Delete "${palette.value.name}"? This can't be undone.`)) return
+  if (!palette.value || !confirm(`Take “${palette.value.name}” off the rack? This can’t be undone.`)) return
   deleting.value = true
   deleteError.value = ''
   try {
@@ -33,7 +34,7 @@ async function remove() {
     await navigateTo(palette.value.author ? `/u/${palette.value.author.username}` : '/explore')
   }
   catch (e) {
-    deleteError.value = e instanceof Error ? e.message : 'Could not delete.'
+    deleteError.value = e instanceof Error ? e.message : 'Deleting failed. Try again.'
     deleting.value = false
   }
 }
@@ -41,74 +42,106 @@ async function remove() {
 
 <template>
   <div class="container">
-    <QueryError v-if="error" @retry="refresh()" />
+    <QueryError v-if="error" message="This palette didn't load." @retry="refresh()" />
 
-    <article v-else-if="palette" class="palette">
-      <div class="palette__swatches">
+    <article v-else-if="palette" class="sheet card-stock">
+      <div class="sheet__swatches">
         <Swatch v-for="(c, i) in palette.colors" :key="i" :color="c" />
       </div>
 
-      <header class="palette__head">
+      <footer class="sheet__info">
         <div>
-          <h1 class="palette__name">{{ palette.name }}</h1>
-          <p class="muted">
-            by
+          <p class="sheet__no">No. {{ number }}</p>
+          <h1 class="sheet__name">{{ palette.name }}</h1>
+          <p class="sheet__by">
+            Mixed by
             <NuxtLink v-if="palette.author" :to="`/u/${palette.author.username}`">@{{ palette.author.username }}</NuxtLink>
-            <span v-else>someone</span>
-            · {{ created }}
+            <span v-else>someone who left</span>
+            on {{ created }}
           </p>
         </div>
-        <div class="palette__actions">
-          <LikeButton :palette-id="palette.id" :count="palette.like_count" class="palette__like" />
+        <div class="sheet__actions">
+          <LikeButton :palette-id="palette.id" :count="palette.like_count" class="sheet__like" />
+          <NuxtLink :to="`/generate?c=${encodeColors(palette.colors)}`" class="btn btn--plain">Open at the counter</NuxtLink>
           <button v-if="isAuthor" class="btn btn--danger" :disabled="deleting" @click="remove">
             {{ deleting ? 'Deleting…' : 'Delete' }}
           </button>
         </div>
-      </header>
-      <p v-if="deleteError" class="form-error">{{ deleteError }}</p>
+      </footer>
+      <p v-if="deleteError" class="form-error sheet__error">{{ deleteError }}</p>
     </article>
   </div>
 </template>
 
 <style scoped>
-.palette {
-  padding: 2.5rem 0 5rem;
-}
-
-.palette__swatches {
-  display: flex;
-  height: 60vh;
-  min-height: 320px;
-  border-radius: var(--radius);
+.sheet {
+  margin: 3rem 0 6rem;
   overflow: hidden;
 }
 
-.palette__head {
+.sheet__swatches {
+  display: flex;
+  height: 58vh;
+  min-height: 340px;
+}
+
+.sheet__info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 1.5rem;
+  padding: 1.75rem clamp(1.25rem, 3vw, 2rem) 2rem;
+  border-top: 1.5px solid var(--ink);
 }
 
-.palette__name {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
+.sheet__no {
+  font-stretch: 85%;
+  color: var(--ink-soft);
 }
 
-.palette__actions {
+.sheet__name {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  font-stretch: 108%;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  margin: 0.15rem 0 0.5rem;
+}
+
+.sheet__by {
+  color: var(--ink-soft);
+}
+
+.sheet__by a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.sheet__actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.palette__like {
-  font-size: 1.2rem;
+.sheet__like {
+  font-size: 1.15rem;
+  margin-right: 0.5rem;
+}
+
+.sheet__error {
+  padding: 0 2rem 1.5rem;
 }
 
 @media (max-width: 700px) {
-  .palette__swatches {
+  .sheet__swatches {
     flex-direction: column;
+    height: auto;
+  }
+
+  .sheet__swatches > * {
+    min-height: 84px;
   }
 }
 </style>
